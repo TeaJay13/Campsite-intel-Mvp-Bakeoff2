@@ -1,0 +1,176 @@
+openapi: 3.0.3
+info:
+  title: Hiking Trail MVP API
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000
+paths:
+  /auth/signup:
+    post:
+      summary: Create user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, displayName]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                displayName: { type: string, minLength: 2, maxLength: 50 }
+      responses:
+        '201': { description: Account created }
+        '409': { description: Email already exists }
+  /auth/login:
+    post:
+      summary: Log in user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200': { description: Authenticated }
+        '401': { description: Invalid credentials }
+  /auth/logout:
+    post:
+      summary: Log out user and revoke active refresh token
+      security:
+        - bearerAuth: []
+      responses:
+        '204': { description: Logged out }
+        '401': { description: Unauthorized }
+  /auth/refresh:
+    post:
+      summary: Refresh access token using valid refresh cookie
+      responses:
+        '200': { description: Access token refreshed }
+        '401': { description: Invalid or revoked refresh token }
+  /trails:
+    get:
+      summary: List trails with search and pagination
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200': { description: Trail list response }
+  /trails/{trailId}:
+    get:
+      summary: Get trail detail
+      parameters:
+        - in: path
+          name: trailId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Trail detail response }
+        '404': { description: Trail not found }
+  /trails/{trailId}/favorites:
+    post:
+      summary: Favorite a trail
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: trailId
+          required: true
+          schema: { type: string }
+      responses:
+        '201': { description: Favorited }
+        '401': { description: Unauthorized }
+        '409': { description: Duplicate favorite }
+    delete:
+      summary: Unfavorite a trail
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: trailId
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Removed from favorites }
+        '401': { description: Unauthorized }
+        '404': { description: Favorite not found }
+  /trails/{trailId}/reviews:
+    post:
+      summary: Create review for a trail
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: trailId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating, comment]
+              properties:
+                rating: { type: integer, minimum: 1, maximum: 5 }
+                comment: { type: string, minLength: 1, maxLength: 2000 }
+      responses:
+        '201': { description: Review created }
+        '400': { description: Validation error }
+        '401': { description: Unauthorized }
+        '409': { description: Review already exists for this user and trail }
+  /reviews/{reviewId}:
+    patch:
+      summary: Update own review
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: reviewId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating: { type: integer, minimum: 1, maximum: 5 }
+                comment: { type: string, minLength: 1, maxLength: 2000 }
+      responses:
+        '200': { description: Review updated }
+        '401': { description: Unauthorized }
+        '403': { description: Forbidden }
+        '404': { description: Not found }
+    delete:
+      summary: Delete own review
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: reviewId
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Review deleted }
+        '401': { description: Unauthorized }
+        '403': { description: Forbidden }
+        '404': { description: Not found }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

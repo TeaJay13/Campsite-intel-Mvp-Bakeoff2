@@ -1,0 +1,95 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { fetchTrailById } from "../../services/trails.service.js";
+
+const { trailId } = Astro.params;
+let trail = null;
+let loadError = "";
+
+if (!trailId) {
+  loadError = "Missing trail id";
+} else {
+  try {
+    trail = await fetchTrailById(trailId);
+  } catch (error) {
+    loadError = error.message ?? "Failed to load trail";
+  }
+}
+---
+
+<BaseLayout title={trail?.name ?? "Trail Detail"}>
+  <section class="panel">
+    {loadError ? (
+      <p class="error">{loadError}</p>
+    ) : !trail ? (
+      <p class="error">Trail not found.</p>
+    ) : (
+      <>
+        <a href="/trails" class="back-link">Back to trails</a>
+        <h1>{trail.name}</h1>
+        <p class="meta">{trail.location}</p>
+        <p class="meta">
+          {trail.difficulty} · {trail.distanceKm} km · +{trail.elevationGainM} m
+        </p>
+        <p>{trail.description}</p>
+
+        <h2>Recent Reviews</h2>
+        {trail.recentReviews?.length ? (
+          <ul class="review-list">
+            {trail.recentReviews.map((review) => (
+              <li>
+                <p class="rating">Rating: {review.rating}/5</p>
+                <p>{review.comment}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No reviews yet for this trail.</p>
+        )}
+      </>
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .back-link {
+    color: #2f6b3e;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  h1 {
+    margin-bottom: 0.2rem;
+  }
+
+  .meta {
+    margin: 0.2rem 0;
+    color: #425842;
+  }
+
+  .review-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .review-list li {
+    border: 1px solid #d7dfd7;
+    border-radius: 8px;
+    padding: 0.7rem;
+    background: #fff;
+  }
+
+  .rating {
+    margin: 0 0 0.3rem;
+    font-weight: 700;
+    color: #2f6b3e;
+  }
+
+  .error {
+    color: #8d2222;
+    font-weight: 600;
+  }
+</style>

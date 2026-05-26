@@ -1,0 +1,124 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { fetchTrails } from "../../services/trails.service.js";
+
+const searchQuery = Astro.url.searchParams.get("q") ?? "";
+let data = { items: [], pagination: { page: 1, totalPages: 1, total: 0 } };
+let loadError = "";
+
+try {
+  data = await fetchTrails({ q: searchQuery, page: 1, limit: 20 });
+} catch (error) {
+  loadError = error.message ?? "Failed to load trails";
+}
+---
+
+<BaseLayout title="Trails">
+  <section class="panel">
+    <h1>Browse Trails</h1>
+
+    <form method="get" action="/trails" class="search-form">
+      <label for="q">Search by name or location</label>
+      <div class="field-row">
+        <input id="q" name="q" value={searchQuery} placeholder="Try Pine or Cedar" />
+        <button type="submit">Search</button>
+      </div>
+    </form>
+
+    {loadError ? (
+      <p class="error">{loadError}</p>
+    ) : data.items.length === 0 ? (
+      <div class="empty-state">
+        <p>No trails matched your search.</p>
+        <p>Try a different name or location.</p>
+      </div>
+    ) : (
+      <ul class="trail-list">
+        {data.items.map((trail) => (
+          <li>
+            <a href={`/trails/${trail._id}`}>
+              <h2>{trail.name}</h2>
+              <p>{trail.location}</p>
+              <p>
+                {trail.difficulty} · {trail.distanceKm} km · +{trail.elevationGainM} m
+              </p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-top: 0;
+  }
+
+  .search-form {
+    margin-bottom: 1rem;
+  }
+
+  .field-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+  }
+
+  input {
+    flex: 1;
+    padding: 0.6rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid #c7d5c7;
+  }
+
+  button {
+    padding: 0.6rem 0.8rem;
+    border: 0;
+    border-radius: 8px;
+    background: #2f6b3e;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .trail-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .trail-list a {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #d7dfd7;
+    border-radius: 10px;
+    padding: 0.8rem;
+    background: #fff;
+  }
+
+  .trail-list h2 {
+    margin: 0 0 0.3rem;
+    color: #234a2d;
+    font-size: 1.1rem;
+  }
+
+  .trail-list p {
+    margin: 0.15rem 0;
+    color: #3c4f3f;
+  }
+
+  .error {
+    color: #8d2222;
+    font-weight: 600;
+  }
+
+  .empty-state {
+    border: 1px dashed #b8c8b8;
+    border-radius: 10px;
+    padding: 0.8rem;
+    background: #f9fbf9;
+  }
+</style>

@@ -1,0 +1,39 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Trail App">
+  <section class="panel hero">
+    <h1>Find your next trail</h1>
+    <p>Browse routes, check conditions, and read recent reviews.</p>
+    <a href="/trails" class="cta">Go to trails</a>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+
+  h1 {
+    margin: 0 0 0.6rem;
+    font-size: 1.9rem;
+    color: #234a2d;
+  }
+
+  p {
+    margin: 0 0 1rem;
+    color: #425842;
+  }
+
+  .cta {
+    display: inline-block;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    background: #2f6b3e;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+  }
+</style>
