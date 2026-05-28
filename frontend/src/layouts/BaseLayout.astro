@@ -48,9 +48,30 @@ const { title = "Hiking Trail MVP" } = Astro.props;
           padding: 1.5rem;
         }
       }
+
+      .hero-image {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 300px;
+        object-fit: cover;
+      }
+
+      .hero-image img {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 300px;
+        object-fit: cover;
+      }
     </style>
   </head>
   <body>
+    <picture class="hero-image">
+      <source media="(min-width: 1024px)" srcset="/images/Sunset-Hero.webp" />
+      <source media="(min-width: 0px)" srcset="/images/Sunset-Hero-Sml.webp" />
+      <img src="/images/Sunset-Hero-Sml.webp" alt="Trail hero" />
+    </picture>
     <NavBar />
     <main>
       <slot />
