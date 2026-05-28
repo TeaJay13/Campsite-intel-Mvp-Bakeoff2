@@ -27,6 +27,33 @@ const seedTrails = [
     elevationGainM: 720,
     description: "Steeper ascent with exposed sections near summit.",
     status: "active"
+  },
+  {
+    name: "Meadow Walk",
+    location: "Sunflower Valley",
+    difficulty: "easy",
+    distanceKm: 2.5,
+    elevationGainM: 20,
+    description: "Gentle stroll through open wildflower meadows.",
+    status: "active"
+  },
+  {
+    name: "Granite Peak Trail",
+    location: "Rockfall Canyon",
+    difficulty: "hard",
+    distanceKm: 11.8,
+    elevationGainM: 950,
+    description: "Technical route over granite formations with panoramic summit views.",
+    status: "active"
+  },
+  {
+    name: "Lakeside Circuit",
+    location: "Mirror Lake Park",
+    difficulty: "moderate",
+    distanceKm: 7.6,
+    elevationGainM: 190,
+    description: "Scenic loop around the lake with shaded forest sections.",
+    status: "active"
   }
 ];
 

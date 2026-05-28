@@ -15,10 +15,14 @@ async function parseJsonSafe(response) {
 }
 
 export async function apiRequest(path, options = {}) {
+  const token =
+    typeof localStorage !== "undefined" ? localStorage.getItem("accessToken") : null;
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers ?? {})
     },
     ...options

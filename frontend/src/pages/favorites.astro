@@ -1,0 +1,123 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="My Favorites">
+  <section class="panel" id="loading-state">
+    <p class="muted">Loading…</p>
+  </section>
+
+  <section class="panel" id="favorites-content" hidden>
+    <h1>My Favorites</h1>
+    <ul class="trail-list" id="favorites-list"></ul>
+    <p class="empty-state" id="empty-state" hidden>
+      You have no favorites yet. <a href="/trails">Browse trails</a> to add some.
+    </p>
+  </section>
+</BaseLayout>
+
+<script>
+  import { getMe } from "../services/auth.service.js";
+  import { getFavorites } from "../services/favorites.service.js";
+
+  async function init() {
+    const loadingEl = document.getElementById("loading-state");
+    const contentEl = document.getElementById("favorites-content");
+    const listEl = document.getElementById("favorites-list");
+    const emptyEl = document.getElementById("empty-state");
+
+    try {
+      await getMe();
+    } catch {
+      window.location.href = "/signup";
+      return;
+    }
+
+    loadingEl.hidden = true;
+    contentEl.hidden = false;
+
+    try {
+      const { items } = await getFavorites();
+
+      if (items.length === 0) {
+        emptyEl.hidden = false;
+        return;
+      }
+
+      listEl.innerHTML = items
+        .map(
+          (trail) => `
+          <li>
+            <a href="/trails/${trail._id}">
+              <h2>${trail.name}</h2>
+              <p>${trail.location}</p>
+              <p>${trail.difficulty} · ${trail.distanceKm} km · +${trail.elevationGainM} m</p>
+            </a>
+          </li>`
+        )
+        .join("");
+    } catch {
+      listEl.innerHTML = `<p class="error">Failed to load favorites.</p>`;
+    }
+  }
+
+  init();
+</script>
+
+<style>
+  h1 {
+    margin-top: 0;
+  }
+
+  .muted {
+    color: #5b675b;
+  }
+
+  .trail-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .trail-list li a {
+    display: block;
+    padding: 0.9rem 1rem;
+    border: 1px solid #dde8dd;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s;
+  }
+
+  .trail-list li a:hover {
+    border-color: #2f6b3e;
+  }
+
+  .trail-list h2 {
+    margin: 0 0 0.2rem;
+    font-size: 1rem;
+    color: #1f2a1f;
+  }
+
+  .trail-list p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #5b675b;
+  }
+
+  .empty-state {
+    color: #5b675b;
+  }
+
+  .empty-state a {
+    color: #2f6b3e;
+    font-weight: 600;
+  }
+
+  .error {
+    color: #c0392b;
+  }
+</style>

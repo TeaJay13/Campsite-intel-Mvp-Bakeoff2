@@ -1,55 +1,129 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { fetchTrailById } from "../../services/trails.service.js";
-
-const { trailId } = Astro.params;
-let trail = null;
-let loadError = "";
-
-if (!trailId) {
-  loadError = "Missing trail id";
-} else {
-  try {
-    trail = await fetchTrailById(trailId);
-  } catch (error) {
-    loadError = error.message ?? "Failed to load trail";
-  }
-}
 ---
 
-<BaseLayout title={trail?.name ?? "Trail Detail"}>
-  <section class="panel">
-    {loadError ? (
-      <p class="error">{loadError}</p>
-    ) : !trail ? (
-      <p class="error">Trail not found.</p>
-    ) : (
-      <>
-        <a href="/trails" class="back-link">Back to trails</a>
-        <h1>{trail.name}</h1>
-        <p class="meta">{trail.location}</p>
-        <p class="meta">
-          {trail.difficulty} · {trail.distanceKm} km · +{trail.elevationGainM} m
-        </p>
-        <p>{trail.description}</p>
+<BaseLayout title="Trail Detail">
+  <section class="panel" id="loading-state">
+    <p class="muted">Loading trail…</p>
+  </section>
 
-        <h2>Recent Reviews</h2>
-        {trail.recentReviews?.length ? (
-          <ul class="review-list">
-            {trail.recentReviews.map((review) => (
-              <li>
-                <p class="rating">Rating: {review.rating}/5</p>
-                <p>{review.comment}</p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No reviews yet for this trail.</p>
-        )}
-      </>
-    )}
+  <section class="panel" id="trail-content" hidden>
+    <a href="/trails" class="back-link">Back to trails</a>
+    <h1 id="trail-name"></h1>
+    <p class="meta" id="trail-location"></p>
+    <p class="meta" id="trail-stats"></p>
+    <p id="trail-description"></p>
+
+    <h2>Recent Reviews</h2>
+    <ul class="review-list" id="review-list"></ul>
+    <p id="no-reviews" hidden>No reviews yet for this trail.</p>
+  </section>
+
+  <section class="panel" id="error-state" hidden>
+    <a href="/trails" class="back-link">Back to trails</a>
+    <p class="error" id="error-msg">Trail not found.</p>
   </section>
 </BaseLayout>
+
+<script>
+  import { fetchTrailById } from "../../services/trails.service.js";
+
+  async function init() {
+    const loadingEl = document.getElementById("loading-state");
+    const contentEl = document.getElementById("trail-content");
+    const errorEl = document.getElementById("error-state");
+    const errorMsg = document.getElementById("error-msg");
+
+    const trailId = window.location.pathname.split("/").pop();
+
+    try {
+      const trail = await fetchTrailById(trailId);
+
+      document.title = trail.name;
+      document.getElementById("trail-name").textContent = trail.name;
+      document.getElementById("trail-location").textContent = trail.location;
+      document.getElementById("trail-stats").textContent =
+        `${trail.difficulty} · ${trail.distanceKm} km · +${trail.elevationGainM} m`;
+      document.getElementById("trail-description").textContent = trail.description;
+
+      const reviewList = document.getElementById("review-list");
+      const noReviews = document.getElementById("no-reviews");
+
+      if (trail.recentReviews?.length) {
+        reviewList.innerHTML = trail.recentReviews
+          .map(
+            (r) => `
+            <li>
+              <p class="rating">Rating: ${r.rating}/5</p>
+              <p>${r.comment}</p>
+            </li>`
+          )
+          .join("");
+      } else {
+        noReviews.hidden = false;
+      }
+
+      loadingEl.hidden = true;
+      contentEl.hidden = false;
+    } catch (err) {
+      loadingEl.hidden = true;
+      errorMsg.textContent = err.message ?? "Trail not found.";
+      errorEl.hidden = false;
+    }
+  }
+
+  init();
+</script>
+
+<style>
+  .back-link {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+    color: #2f6b3e;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .muted {
+    color: #5b675b;
+  }
+
+  h1 {
+    margin-bottom: 0.2rem;
+  }
+
+  .meta {
+    margin: 0.2rem 0;
+    color: #425842;
+  }
+
+  .review-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .review-list li {
+    border: 1px solid #d7dfd7;
+    border-radius: 8px;
+    padding: 0.7rem;
+    background: #fff;
+  }
+
+  .rating {
+    margin: 0 0 0.3rem;
+    font-weight: 700;
+    color: #2f6b3e;
+  }
+
+  .error {
+    color: #8d2222;
+    font-weight: 600;
+  }
+</style>
+
 
 <style>
   .back-link {
