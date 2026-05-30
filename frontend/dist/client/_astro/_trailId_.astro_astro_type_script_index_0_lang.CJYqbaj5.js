@@ -1,0 +1,5 @@
+import{a as c}from"./api-client.D63I1rr4.js";async function s(e){return c(`/api/v1/trails/${e}`)}async function m(){const e=document.getElementById("loading-state"),i=document.getElementById("trail-content"),o=document.getElementById("error-state"),a=document.getElementById("error-msg"),d=window.location.pathname.split("/").pop();try{const t=await s(d);document.title=t.name,document.getElementById("trail-name").textContent=t.name,document.getElementById("trail-location").textContent=t.location,document.getElementById("trail-stats").textContent=`${t.difficulty} · ${t.distanceKm} km · +${t.elevationGainM} m`,document.getElementById("trail-description").textContent=t.description;const l=document.getElementById("review-list"),r=document.getElementById("no-reviews");t.recentReviews?.length?l.innerHTML=t.recentReviews.map(n=>`
+            <li>
+              <p class="rating">Rating: ${n.rating}/5</p>
+              <p>${n.comment}</p>
+            </li>`).join(""):r.hidden=!1,e.hidden=!0,i.hidden=!1}catch(t){e.hidden=!0,a.textContent=t.message??"Trail not found.",o.hidden=!1}}m();

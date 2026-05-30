@@ -13,8 +13,8 @@ export async function registerTrailRoutes(app) {
       }
     },
     async (request) => {
-      const { q, page, limit } = request.query;
-      return listTrails({ q, page, limit });
+      const { q, difficulty, page, limit } = request.query;
+      return listTrails({ q, difficulty, page, limit });
     }
   );
 

@@ -4,36 +4,155 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 <BaseLayout title="Trail App">
   <section class="panel hero">
+    <p class="eyebrow">Discover the Outdoors</p>
     <h1>Find your next trail</h1>
-    <p>Browse routes, check conditions, and read recent reviews.</p>
-    <a href="/trails" class="cta">Go to trails</a>
+    <p class="lead">Browse routes, check conditions, and read recent reviews.</p>
+    <div class="hero-actions">
+      <a href="/trails" class="btn btn-primary">Browse Trails</a>
+      <a href="/favorites" class="btn btn-ghost">My Favorites</a>
+    </div>
+
+    <div class="quick-start">
+      <h2>Quick Start</h2>
+      <div class="quick-buttons">
+        <a href="/trails?difficulty=easy" class="btn btn-ghost">Easy Trails</a>
+        <a href="/trails?difficulty=moderate" class="btn btn-ghost">Moderate Trails</a>
+        <a href="/trails?difficulty=hard" class="btn btn-ghost">Hard Trails</a>
+      </div>
+    </div>
   </section>
 </BaseLayout>
 
 <style>
   .hero {
     text-align: center;
-    padding: 2rem 1rem;
+    padding: clamp(1.6rem, 4vw, 2.8rem) clamp(1rem, 3vw, 2.2rem);
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    margin: 0;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #356f47;
+    font-weight: 700;
   }
 
   h1 {
-    margin: 0 0 0.6rem;
-    font-size: 1.9rem;
+    margin: 0.4rem 0 0.65rem;
+    font-size: clamp(1.8rem, 4.2vw, 2.45rem);
+    line-height: 1.12;
     color: #234a2d;
   }
 
-  p {
-    margin: 0 0 1rem;
+  .lead {
+    margin: 0 auto 1.2rem;
     color: #425842;
+    max-width: 54ch;
   }
 
-  .cta {
-    display: inline-block;
-    padding: 0.7rem 1rem;
-    border-radius: 10px;
-    background: #2f6b3e;
-    color: #fff;
+  .hero-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  .hero-actions .btn,
+  .quick-buttons .btn {
+    min-width: 220px;
+    min-height: 3.2rem;
+    padding: 0.9rem 1.4rem;
+    font-size: 1.05rem;
+    border-radius: 14px;
+    border: 2px solid transparent;
+    box-shadow: 0 10px 22px rgba(23, 58, 34, 0.16);
+    letter-spacing: 0.01em;
     text-decoration: none;
-    font-weight: 700;
+  }
+
+  .hero-actions .btn:hover,
+  .hero-actions .btn:focus,
+  .hero-actions .btn:active,
+  .hero-actions .btn:visited,
+  .quick-buttons .btn:hover,
+  .quick-buttons .btn:focus,
+  .quick-buttons .btn:active,
+  .quick-buttons .btn:visited {
+    text-decoration: none;
+  }
+
+  .hero-actions .btn-primary,
+  .quick-buttons .btn-primary {
+    background: linear-gradient(180deg, #2f7647 0%, #245d39 100%);
+    border-color: #1e4f31;
+    color: #fff;
+  }
+
+  .hero-actions .btn-ghost,
+  .quick-buttons .btn-ghost {
+    background: linear-gradient(180deg, #2f7647 0%, #245d39 100%);
+    color: #fff;
+    border-color: #1e4f31;
+  }
+
+  .quick-start {
+    margin-top: 1.35rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(36, 93, 57, 0.2);
+  }
+
+  .quick-start h2 {
+    margin: 0 0 0.7rem;
+    font-size: 1.1rem;
+    color: #234a2d;
+  }
+
+  .quick-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .quick-buttons .btn {
+    text-decoration: none;
+  }
+
+  @media (max-width: 520px) {
+    .hero {
+      padding: 1.2rem 0.7rem 1.4rem;
+    }
+
+    .hero-actions {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.65rem;
+      width: min(100%, 360px);
+      margin-inline: auto;
+      padding-inline: 0.45rem;
+      box-sizing: border-box;
+    }
+
+    .hero-actions .btn,
+    .quick-buttons .btn {
+      width: min(100%, 320px);
+      min-width: 0;
+      min-height: 3rem;
+      margin-inline: auto;
+    }
+
+    .quick-buttons {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.55rem;
+      width: min(100%, 360px);
+      margin-inline: auto;
+      padding-inline: 0.45rem;
+      box-sizing: border-box;
+    }
+
   }
 </style>

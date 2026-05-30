@@ -2,13 +2,19 @@ import mongoose from "mongoose";
 import { Trail } from "../models/trail.model.js";
 import { Review } from "../models/review.model.js";
 
-function buildSearchFilter(query) {
+function buildSearchFilter(query, difficulty) {
+  const baseFilter = { status: "active" };
+
+  if (difficulty) {
+    baseFilter.difficulty = difficulty;
+  }
+
   if (!query) {
-    return { status: "active" };
+    return baseFilter;
   }
 
   return {
-    status: "active",
+    ...baseFilter,
     $or: [
       { name: { $regex: query, $options: "i" } },
       { location: { $regex: query, $options: "i" } }
@@ -16,9 +22,9 @@ function buildSearchFilter(query) {
   };
 }
 
-export async function listTrails({ q, page = 1, limit = 20 }) {
+export async function listTrails({ q, difficulty, page = 1, limit = 20 }) {
   const skip = (page - 1) * limit;
-  const filter = buildSearchFilter(q);
+  const filter = buildSearchFilter(q, difficulty);
 
   const [items, total] = await Promise.all([
     Trail.find(filter)

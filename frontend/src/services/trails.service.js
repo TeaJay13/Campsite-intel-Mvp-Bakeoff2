@@ -1,9 +1,12 @@
 import { apiRequest } from "./api-client.js";
 
-export async function fetchTrails({ q = "", page = 1, limit = 20 } = {}) {
+export async function fetchTrails({ q = "", difficulty = "", page = 1, limit = 20 } = {}) {
   const params = new URLSearchParams();
   if (q) {
     params.set("q", q);
+  }
+  if (difficulty) {
+    params.set("difficulty", difficulty);
   }
   params.set("page", String(page));
   params.set("limit", String(limit));

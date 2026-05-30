@@ -89,7 +89,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   }
 
   h1 {
-    margin-bottom: 0.2rem;
+    margin: 0 0 0.25rem;
+    font-size: clamp(1.4rem, 4vw, 2rem);
   }
 
   .meta {
@@ -107,8 +108,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
   .review-list li {
     border: 1px solid #d7dfd7;
-    border-radius: 8px;
-    padding: 0.7rem;
+    border-radius: 10px;
+    padding: 0.8rem;
     background: #fff;
   }
 
@@ -122,48 +123,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     color: #8d2222;
     font-weight: 600;
   }
-</style>
 
-
-<style>
-  .back-link {
-    color: #2f6b3e;
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  h1 {
-    margin-bottom: 0.2rem;
-  }
-
-  .meta {
-    margin: 0.2rem 0;
-    color: #425842;
-  }
-
-  .review-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0.7rem;
-  }
-
-  .review-list li {
-    border: 1px solid #d7dfd7;
-    border-radius: 8px;
-    padding: 0.7rem;
-    background: #fff;
-  }
-
-  .rating {
-    margin: 0 0 0.3rem;
-    font-weight: 700;
-    color: #2f6b3e;
-  }
-
-  .error {
-    color: #8d2222;
-    font-weight: 600;
+  @media (max-width: 640px) {
+    .review-list li {
+      padding: 0.7rem;
+    }
   }
 </style>

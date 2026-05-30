@@ -12,11 +12,15 @@ const { title = "Hiking Trail MVP" } = Astro.props;
     <title>{title}</title>
     <style>
       :root {
-        --bg: #f5f4ef;
+        --bg: #f4f0e7;
         --surface: #ffffff;
+        --surface-soft: #f8f6ef;
         --text: #1f2a1f;
         --muted: #5b675b;
-        --brand: #2f6b3e;
+        --brand: #245d39;
+        --brand-strong: #1d4b2d;
+        --line: #d7dfd7;
+        --danger: #ab2c2c;
       }
 
       * {
@@ -25,51 +29,111 @@ const { title = "Hiking Trail MVP" } = Astro.props;
 
       body {
         margin: 0;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Trebuchet MS", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         color: var(--text);
-        background: radial-gradient(circle at top, #dce8d7 0%, var(--bg) 55%);
+        background: radial-gradient(circle at 12% 0%, #e0e9db 0%, var(--bg) 48%);
+        line-height: 1.45;
       }
 
       main {
         max-width: 1100px;
         margin: 0 auto;
-        padding: 1rem;
+        padding: 0.9rem;
       }
 
       .panel {
         background: var(--surface);
         border-radius: 14px;
         padding: 1rem;
+        border: 1px solid rgba(34, 74, 45, 0.1);
         box-shadow: 0 10px 30px rgba(24, 36, 24, 0.08);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.4rem;
+        padding: 0.6rem 1rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        border: 0;
+        cursor: pointer;
+        transition: transform 0.15s ease, background-color 0.15s ease;
+      }
+
+      .btn-primary {
+        background: var(--brand);
+        color: #fff;
+      }
+
+      .btn-primary:hover {
+        background: var(--brand-strong);
+        transform: translateY(-1px);
+      }
+
+      .btn-ghost {
+        background: var(--surface-soft);
+        color: var(--brand);
+        border: 1px solid rgba(36, 93, 57, 0.26);
+      }
+
+      .btn-ghost:hover {
+        background: #eff5ef;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        overflow-wrap: anywhere;
+      }
+
+      input,
+      button {
+        font: inherit;
+      }
+
+      .error {
+        color: var(--danger);
       }
 
       @media (min-width: 768px) {
         main {
           padding: 1.5rem;
         }
+
+        .panel {
+          padding: 1.15rem 1.2rem;
+        }
       }
 
       .hero-image {
         display: block;
         width: 100%;
-        height: auto;
-        max-height: 300px;
-        object-fit: cover;
+        height: clamp(180px, 34vw, 320px);
+        overflow: hidden;
       }
 
       .hero-image img {
         display: block;
         width: 100%;
-        height: auto;
-        max-height: 300px;
+        height: 100%;
         object-fit: cover;
+      }
+
+      @media (max-width: 767px) {
+        .hero-image {
+          height: 188px;
+        }
       }
     </style>
   </head>
   <body>
     <picture class="hero-image">
-      <source media="(min-width: 1024px)" srcset="/images/Sunset-Hero.webp" />
-      <source media="(min-width: 0px)" srcset="/images/Sunset-Hero-Sml.webp" />
+      <source media="(max-width: 767px)" srcset="/images/Sunset-Hero-Sml.webp" />
+      <source media="(min-width: 768px)" srcset="/images/Sunset-Hero.webp" />
       <img src="/images/Sunset-Hero-Sml.webp" alt="Trail hero" />
     </picture>
     <NavBar />
