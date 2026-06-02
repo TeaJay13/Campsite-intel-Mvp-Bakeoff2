@@ -1,10 +1,10 @@
-import { a2 as createComponent, aa as maybeRenderHead, al as renderTemplate, af as renderHead, ad as renderComponent, aj as renderSlot, a1 as createAstro } from './astro/server_Usdhawli.mjs';
+import { a2 as createComponent, aa as maybeRenderHead, ai as renderScript, al as renderTemplate, af as renderHead, ad as renderComponent, aj as renderSlot, a1 as createAstro } from './astro/server_Usdhawli.mjs';
 import 'piccolore';
 import 'clsx';
 /* empty css                             */
 
-const $$NavBar = createComponent(($$result, $$props, $$slots) => {
-  return renderTemplate`${maybeRenderHead()}<nav class="nav" data-astro-cid-ymhdp2rl> <a href="/" class="brand" data-astro-cid-ymhdp2rl>Trail App</a> <ul class="nav-links" data-astro-cid-ymhdp2rl> <li data-astro-cid-ymhdp2rl><a href="/" class="nav-btn" data-astro-cid-ymhdp2rl>Home</a></li> <li data-astro-cid-ymhdp2rl><a href="/trails" class="nav-btn" data-astro-cid-ymhdp2rl>Trails</a></li> <li data-astro-cid-ymhdp2rl><a href="/favorites" class="nav-btn" data-astro-cid-ymhdp2rl>Favorites</a></li> <li data-astro-cid-ymhdp2rl><a href="/login" class="nav-btn nav-btn-primary" data-astro-cid-ymhdp2rl>Log in</a></li> </ul> </nav> `;
+const $$NavBar = createComponent(async ($$result, $$props, $$slots) => {
+  return renderTemplate`${maybeRenderHead()}<nav class="nav" data-astro-cid-ymhdp2rl> <a href="/" class="brand" data-astro-cid-ymhdp2rl>Trail App</a> <p id="nav-welcome" class="nav-welcome" hidden data-astro-cid-ymhdp2rl></p> <ul class="nav-links" data-astro-cid-ymhdp2rl> <li data-astro-cid-ymhdp2rl><a href="/" class="nav-btn" data-astro-cid-ymhdp2rl>Home</a></li> <li data-astro-cid-ymhdp2rl><a href="/trails" class="nav-btn" data-astro-cid-ymhdp2rl>Trails</a></li> <li data-astro-cid-ymhdp2rl><a href="/favorites" class="nav-btn" data-astro-cid-ymhdp2rl>Favorites</a></li> <li data-astro-cid-ymhdp2rl><a href="/login" id="auth-nav-btn" class="nav-btn nav-btn-primary" data-astro-cid-ymhdp2rl>Log in</a></li> </ul> </nav> ${renderScript($$result, "C:/Users/thoma/OneDrive/Documents/School/Full Stack Development/Bakeoff2/spec-kit-template-copilot-ps-v0.0.90/frontend/src/components/NavBar.astro?astro&type=script&index=0&lang.ts")} `;
 }, "C:/Users/thoma/OneDrive/Documents/School/Full Stack Development/Bakeoff2/spec-kit-template-copilot-ps-v0.0.90/frontend/src/components/NavBar.astro", void 0);
 
 const $$Astro = createAstro();

@@ -1,6 +1,6 @@
 import { a2 as createComponent, ad as renderComponent, al as renderTemplate, a1 as createAstro, aa as maybeRenderHead, _ as addAttribute } from '../chunks/astro/server_Usdhawli.mjs';
 import 'piccolore';
-import { $ as $$BaseLayout } from '../chunks/BaseLayout_CT3Xa8T5.mjs';
+import { $ as $$BaseLayout } from '../chunks/BaseLayout_C4HyKXgh.mjs';
 /* empty css                                 */
 export { renderers } from '../renderers.mjs';
 
@@ -18,10 +18,11 @@ async function parseJsonSafe(response) {
 }
 async function apiRequest(path, options = {}) {
   const token = typeof localStorage !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const hasBody = options.body !== void 0 && options.body !== null;
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
     headers: {
-      "Content-Type": "application/json",
+      ...hasBody ? { "Content-Type": "application/json" } : {},
       ...token ? { Authorization: `Bearer ${token}` } : {},
       ...options.headers ?? {}
     },

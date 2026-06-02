@@ -1,12 +1,12 @@
 import { a2 as createComponent, ad as renderComponent, ai as renderScript, al as renderTemplate, aa as maybeRenderHead } from '../chunks/astro/server_Usdhawli.mjs';
 import 'piccolore';
-import { $ as $$BaseLayout } from '../chunks/BaseLayout_CT3Xa8T5.mjs';
+import { $ as $$BaseLayout } from '../chunks/BaseLayout_C4HyKXgh.mjs';
 /* empty css                                     */
 export { renderers } from '../renderers.mjs';
 
 const $$Favorites = createComponent(async ($$result, $$props, $$slots) => {
-  return renderTemplate`${renderComponent($$result, "BaseLayout", $$BaseLayout, { "title": "My Favorites", "data-astro-cid-hy2k5nxk": true }, { "default": async ($$result2) => renderTemplate` ${maybeRenderHead()}<section class="panel" id="loading-state" data-astro-cid-hy2k5nxk> <p class="muted" data-astro-cid-hy2k5nxk>Loading…</p> </section> <section class="panel" id="favorites-content" hidden data-astro-cid-hy2k5nxk> <h1 data-astro-cid-hy2k5nxk>My Favorites</h1> <ul class="trail-list" id="favorites-list" data-astro-cid-hy2k5nxk></ul> <p class="empty-state" id="empty-state" hidden data-astro-cid-hy2k5nxk>
-You have no favorites yet. <a href="/trails" data-astro-cid-hy2k5nxk>Browse trails</a> to add some.
+  return renderTemplate`${renderComponent($$result, "BaseLayout", $$BaseLayout, { "title": "My Favorites" }, { "default": async ($$result2) => renderTemplate` ${maybeRenderHead()}<section class="panel" id="loading-state"> <p class="muted">Loading…</p> </section> <section class="panel" id="favorites-content" hidden> <h1>My Favorites</h1> <p class="subhead">Your saved trails in one place.</p> <ul class="trail-list" id="favorites-list"></ul> <p class="status-msg" id="status-msg" hidden></p> <p class="empty-state" id="empty-state" hidden>
+You have no favorites yet. <a href="/trails">Browse trails</a> to add some.
 </p> </section> ` })} ${renderScript($$result, "C:/Users/thoma/OneDrive/Documents/School/Full Stack Development/Bakeoff2/spec-kit-template-copilot-ps-v0.0.90/frontend/src/pages/favorites.astro?astro&type=script&index=0&lang.ts")} `;
 }, "C:/Users/thoma/OneDrive/Documents/School/Full Stack Development/Bakeoff2/spec-kit-template-copilot-ps-v0.0.90/frontend/src/pages/favorites.astro", void 0);
 

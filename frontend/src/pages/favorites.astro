@@ -9,7 +9,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   <section class="panel" id="favorites-content" hidden>
     <h1>My Favorites</h1>
+    <p class="subhead">Your saved trails in one place.</p>
     <ul class="trail-list" id="favorites-list"></ul>
+    <p class="status-msg" id="status-msg" hidden></p>
     <p class="empty-state" id="empty-state" hidden>
       You have no favorites yet. <a href="/trails">Browse trails</a> to add some.
     </p>
@@ -18,18 +20,45 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 <script>
   import { getMe } from "../services/auth.service.js";
-  import { getFavorites } from "../services/favorites.service.js";
+  import { getFavorites, removeFavorite } from "../services/favorites.service.js";
 
   async function init() {
     const loadingEl = document.getElementById("loading-state");
     const contentEl = document.getElementById("favorites-content");
     const listEl = document.getElementById("favorites-list");
     const emptyEl = document.getElementById("empty-state");
+    const statusEl = document.getElementById("status-msg");
+
+    function renderFavorites(items) {
+      if (items.length === 0) {
+        listEl.innerHTML = "";
+        emptyEl.hidden = false;
+        return;
+      }
+
+      emptyEl.hidden = true;
+      listEl.innerHTML = items
+        .map(
+          (trail) => `
+          <li data-trail-id="${trail._id}">
+            <a href="/trails/${trail._id}" class="trail-link">
+              <h2>${trail.name}</h2>
+              <p>${trail.location}</p>
+              <p>${trail.difficulty} · ${trail.distanceKm} km · +${trail.elevationGainM} m</p>
+            </a>
+            <div class="favorite-actions">
+              <button class="remove-btn" type="button" data-remove-id="${trail._id}">Remove</button>
+              <a class="review-btn" href="/trails/${trail._id}">View or Post Review</a>
+            </div>
+          </li>`
+        )
+        .join("");
+    }
 
     try {
       await getMe();
     } catch {
-      window.location.href = "/signup";
+      window.location.href = "/login";
       return;
     }
 
@@ -38,24 +67,39 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     try {
       const { items } = await getFavorites();
+      renderFavorites(items);
 
-      if (items.length === 0) {
-        emptyEl.hidden = false;
-        return;
-      }
+      listEl.addEventListener("click", async (event) => {
+        const button = event.target.closest("[data-remove-id]");
+        if (!button) return;
 
-      listEl.innerHTML = items
-        .map(
-          (trail) => `
-          <li>
-            <a href="/trails/${trail._id}">
-              <h2>${trail.name}</h2>
-              <p>${trail.location}</p>
-              <p>${trail.difficulty} · ${trail.distanceKm} km · +${trail.elevationGainM} m</p>
-            </a>
-          </li>`
-        )
-        .join("");
+        const trailId = button.getAttribute("data-remove-id");
+        if (!trailId) return;
+
+        button.disabled = true;
+        button.textContent = "Removing...";
+        statusEl.hidden = true;
+
+        try {
+          await removeFavorite(trailId);
+          const card = listEl.querySelector(`li[data-trail-id="${trailId}"]`);
+          if (card) {
+            card.remove();
+          }
+
+          statusEl.textContent = "Removed from favorites.";
+          statusEl.hidden = false;
+
+          if (!listEl.children.length) {
+            emptyEl.hidden = false;
+          }
+        } catch (error) {
+          button.disabled = false;
+          button.textContent = "Remove";
+          statusEl.textContent = error?.message ?? "Could not remove favorite.";
+          statusEl.hidden = false;
+        }
+      });
     } catch {
       listEl.innerHTML = `<p class="error">Failed to load favorites.</p>`;
     }
@@ -64,9 +108,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   init();
 </script>
 
-<style>
+<style is:global>
   h1 {
     margin: 0 0 0.85rem;
+  }
+
+  .subhead {
+    margin: 0 0 1rem;
+    color: #5b675b;
   }
 
   .muted {
@@ -75,43 +124,124 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   .trail-list {
     list-style: none;
-    margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    margin: 0;
+    display: grid;
+    gap: 0.8rem;
   }
 
-  .trail-list li a {
-    display: block;
-    padding: 0.9rem 1rem;
-    border: 1px solid #dde8dd;
+  .trail-list li {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    align-items: start;
+    border: 1px solid #d7dfd7;
     border-radius: 12px;
+    padding: 0.75rem;
+    background: #fff;
+  }
+
+  .trail-link {
+    display: block;
     text-decoration: none;
     color: inherit;
-    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 0.65rem;
+    background: transparent;
+    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
   }
 
-  .trail-list li a:hover {
+  .trail-link:visited,
+  .trail-link:hover,
+  .trail-link:focus,
+  .trail-link:active {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .trail-link:hover {
     transform: translateY(-1px);
-    border-color: #2f6b3e;
-    box-shadow: 0 8px 18px rgba(36, 93, 57, 0.1);
+    border-color: #bfd1c2;
+    box-shadow: 0 4px 12px rgba(36, 93, 57, 0.08);
+  }
+
+  .favorite-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0;
+  }
+
+  .remove-btn {
+    min-height: 2.3rem;
+    min-width: 140px;
+    padding: 0.5rem 0.8rem;
+    border-radius: 9px;
+    border: 1px solid #b7cab8;
+    background: #fff;
+    color: #2f6b3e;
+    font-weight: 700;
+    cursor: pointer;
+    flex: 1 1 140px;
+  }
+
+  .review-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.3rem;
+    min-width: 140px;
+    padding: 0.5rem 0.8rem;
+    border-radius: 9px;
+    border: 1px solid #b7cab8;
+    background: #fff;
+    color: #2f6b3e;
+    font-weight: 700;
+    text-decoration: none;
+    flex: 1 1 140px;
+  }
+
+  .review-btn:hover,
+  .review-btn:focus,
+  .review-btn:active,
+  .review-btn:visited {
+    text-decoration: none;
+    color: #2f6b3e;
+    background: #e8f0e8;
+  }
+
+  .remove-btn:hover {
+    background: #e8f0e8;
+  }
+
+  .remove-btn:disabled {
+    opacity: 0.75;
+    cursor: default;
   }
 
   .trail-list h2 {
-    margin: 0 0 0.2rem;
-    font-size: 1rem;
-    color: #1f2a1f;
+    margin: 0 0 0.3rem;
+    color: #234a2d;
+    font-size: 1.1rem;
   }
 
   .trail-list p {
-    margin: 0;
-    font-size: 0.85rem;
-    color: #5b675b;
+    margin: 0.15rem 0;
+    color: #3c4f3f;
+    font-size: 1rem;
   }
 
   .empty-state {
     color: #5b675b;
+  }
+
+  .status-msg {
+    margin: 0.6rem 0 0;
+    color: #35563a;
+    font-size: 0.92rem;
   }
 
   .empty-state a {
@@ -124,12 +254,23 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   @media (max-width: 640px) {
-    .trail-list li a {
-      padding: 0.8rem;
+    .trail-list li {
+      grid-template-columns: 1fr;
+      border: 1px solid #d7dfd7;
+      border-radius: 12px;
+      padding: 0.75rem;
     }
 
-    .trail-list h2 {
-      font-size: 0.95rem;
+    .favorite-actions {
+      justify-content: stretch;
+    }
+
+    .remove-btn {
+      width: auto;
+    }
+
+    .review-btn {
+      width: auto;
     }
   }
 </style>

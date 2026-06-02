@@ -19,8 +19,14 @@ export async function login({ email, password }) {
 }
 
 export async function logout() {
-  await apiRequest("/api/v1/auth/logout", { method: "POST" });
   localStorage.removeItem("accessToken");
+
+  try {
+    await apiRequest("/api/v1/auth/logout", { method: "POST" });
+  } finally {
+    // Ensure token is removed even if logout endpoint fails.
+    localStorage.removeItem("accessToken");
+  }
 }
 
 export async function getMe() {

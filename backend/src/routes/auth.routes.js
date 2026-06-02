@@ -1,16 +1,16 @@
-import { registerUser, loginUser } from "../services/auth.service.js";
+import { registerUser, loginUser, getUserById } from "../services/auth.service.js";
 import { registerBodySchema, loginBodySchema } from "../api/schemas/auth.schema.js";
 
 const ACCESS_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? "15m";
 const REFRESH_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN ?? "7d";
 const REFRESH_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
-function issueTokens(app, userId, email) {
-  const accessToken = app.access.sign(
+async function issueTokens(reply, userId, email) {
+  const accessToken = await reply.accessJwtSign(
     { sub: userId, email },
     { expiresIn: ACCESS_EXPIRES_IN }
   );
-  const refreshToken = app.refresh.sign(
+  const refreshToken = await reply.refreshJwtSign(
     { sub: userId },
     { expiresIn: REFRESH_EXPIRES_IN }
   );
@@ -23,7 +23,7 @@ export async function registerAuthRoutes(app) {
     { schema: { body: registerBodySchema } },
     async (request, reply) => {
       const user = await registerUser(request.body);
-      const { accessToken, refreshToken } = issueTokens(app, user.id, user.email);
+      const { accessToken, refreshToken } = await issueTokens(reply, user.id, user.email);
 
       reply.setCookie("refreshToken", refreshToken, {
         httpOnly: true,
@@ -41,7 +41,7 @@ export async function registerAuthRoutes(app) {
     { schema: { body: loginBodySchema } },
     async (request, reply) => {
       const user = await loginUser(request.body);
-      const { accessToken, refreshToken } = issueTokens(app, user.id, user.email);
+      const { accessToken, refreshToken } = await issueTokens(reply, user.id, user.email);
 
       reply.setCookie("refreshToken", refreshToken, {
         httpOnly: true,
@@ -64,7 +64,12 @@ export async function registerAuthRoutes(app) {
     { preHandler: [app.authenticate] },
     async (request, reply) => {
       const { sub, email } = request.user;
-      return reply.send({ id: sub, email });
+      const user = await getUserById(sub);
+      return reply.send({
+        id: sub,
+        email,
+        displayName: user?.displayName ?? ""
+      });
     }
   );
 }

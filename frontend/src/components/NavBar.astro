@@ -1,12 +1,72 @@
 <nav class="nav">
   <a href="/" class="brand">Trail App</a>
+  <p id="nav-welcome" class="nav-welcome" hidden></p>
   <ul class="nav-links">
     <li><a href="/" class="nav-btn">Home</a></li>
     <li><a href="/trails" class="nav-btn">Trails</a></li>
     <li><a href="/favorites" class="nav-btn">Favorites</a></li>
-    <li><a href="/login" class="nav-btn nav-btn-primary">Log in</a></li>
+    <li><a href="/login" id="auth-nav-btn" class="nav-btn nav-btn-primary">Log in</a></li>
   </ul>
 </nav>
+
+<script>
+  import { getMe, logout } from "../services/auth.service.js";
+
+  const authBtn = document.getElementById("auth-nav-btn");
+  const welcomeEl = document.getElementById("nav-welcome");
+
+  function setLoggedOutState() {
+    if (!authBtn) return;
+    authBtn.textContent = "Log in";
+    authBtn.href = "/login";
+    authBtn.style.pointerEvents = "auto";
+
+    if (welcomeEl) {
+      welcomeEl.hidden = true;
+      welcomeEl.textContent = "";
+    }
+  }
+
+  async function initAuthButton() {
+    if (!authBtn) return;
+
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setLoggedOutState();
+      return;
+    }
+
+    try {
+      const me = await getMe();
+      const name = me?.displayName?.trim() || me?.email?.split("@")[0] || "hiker";
+
+      if (welcomeEl) {
+        welcomeEl.textContent = `Welcome, ${name}`;
+        welcomeEl.hidden = false;
+      }
+
+      authBtn.textContent = "Log out";
+      authBtn.href = "#";
+      authBtn.style.pointerEvents = "auto";
+      authBtn.addEventListener("click", async (event) => {
+        event.preventDefault();
+        authBtn.textContent = "Logging out...";
+        authBtn.style.pointerEvents = "none";
+
+        try {
+          await logout();
+        } finally {
+          setLoggedOutState();
+          window.location.href = "/login";
+        }
+      });
+    } catch {
+      setLoggedOutState();
+    }
+  }
+
+  initAuthButton();
+</script>
 
 <style>
   .nav {
@@ -29,6 +89,13 @@
     color: #1f2a1f;
     text-decoration: none;
     font-size: 1.08rem;
+  }
+
+  .nav-welcome {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #2b5f3a;
+    font-weight: 600;
   }
 
   .nav-links {
@@ -88,6 +155,11 @@
       width: 100%;
       text-align: center;
       margin-bottom: 0.1rem;
+    }
+
+    .nav-welcome {
+      width: 100%;
+      text-align: center;
     }
 
     .nav-links {

@@ -1,6 +1,7 @@
 import { registerTrailRoutes } from "./trails.routes.js";
 import { registerAuthRoutes } from "./auth.routes.js";
 import { registerFavoritesRoutes } from "./favorites.routes.js";
+import { registerReviewsRoutes } from "./reviews.routes.js";
 
 export async function registerApiRoutes(app) {
   app.get("/health", async () => ({ status: "ok" }));
@@ -11,6 +12,7 @@ export async function registerApiRoutes(app) {
       v1.register(registerTrailRoutes, { prefix: "/trails" });
       v1.register(registerAuthRoutes, { prefix: "/auth" });
       v1.register(registerFavoritesRoutes, { prefix: "/favorites" });
+      v1.register(registerReviewsRoutes, { prefix: "/reviews" });
     },
     { prefix: "/api/v1" }
   );

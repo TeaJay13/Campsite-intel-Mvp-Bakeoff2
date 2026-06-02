@@ -1,0 +1,1 @@
+import{a as t}from"./auth.service.Ci3Tolzm.js";async function r(){return t("/api/v1/favorites")}async function o(a){return t(`/api/v1/favorites/${a}`,{method:"POST"})}async function i(a){return t(`/api/v1/favorites/${a}`,{method:"DELETE"})}export{o as a,r as g,i as r};

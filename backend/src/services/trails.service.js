@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { Trail } from "../models/trail.model.js";
-import { Review } from "../models/review.model.js";
 
 function buildSearchFilter(query, difficulty) {
   const baseFilter = { status: "active" };
@@ -55,13 +54,5 @@ export async function getTrailDetail(trailId) {
     return null;
   }
 
-  const recentReviews = await Review.find({ trailId: id })
-    .sort({ updatedAt: -1 })
-    .limit(10)
-    .lean();
-
-  return {
-    ...trail,
-    recentReviews
-  };
+  return trail;
 }

@@ -4,19 +4,74 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
 <BaseLayout title="Trail Detail">
   <section class="panel" id="loading-state">
-    <p class="muted">Loading trail…</p>
+    <p class="muted">Loading trail...</p>
   </section>
 
   <section class="panel" id="trail-content" hidden>
     <a href="/trails" class="back-link">Back to trails</a>
-    <h1 id="trail-name"></h1>
-    <p class="meta" id="trail-location"></p>
-    <p class="meta" id="trail-stats"></p>
-    <p id="trail-description"></p>
+    <div class="trail-overview">
+      <div class="trail-image-wrap">
+        <picture id="trail-picture" class="trail-picture" hidden>
+          <source id="trail-image-large-source" media="(min-width: 768px)" srcset="" />
+          <img id="trail-image" src="" alt="Trail image" loading="lazy" />
+        </picture>
+      </div>
+      <div class="trail-text-wrap">
+        <h1 id="trail-name"></h1>
+        <p class="meta" id="trail-location"></p>
+        <p class="meta" id="trail-stats"></p>
+        <p id="trail-description"></p>
+        <div class="trail-actions" id="trail-actions" hidden>
+          <button id="favorite-action-btn" class="action-btn" type="button"></button>
+          <p id="favorite-action-msg" class="action-msg" hidden></p>
+        </div>
+      </div>
+    </div>
 
-    <h2>Recent Reviews</h2>
-    <ul class="review-list" id="review-list"></ul>
-    <p id="no-reviews" hidden>No reviews yet for this trail.</p>
+    <h2>Trail Reviews</h2>
+    <p id="review-auth-msg" class="muted" hidden>
+      To see or post a review, you need to sign/log in.
+    </p>
+    <section id="review-auth-content" hidden>
+      <div class="review-layout">
+        <div class="review-editor">
+          <div id="review-actions" class="review-actions" hidden>
+            <button id="post-review-btn" class="action-btn" type="button" hidden>Post a Review</button>
+            <button id="update-review-btn" class="action-btn" type="button" hidden>Update Review</button>
+            <button id="delete-review-btn" class="action-btn action-btn-danger" type="button" hidden>
+              Delete Review
+            </button>
+          </div>
+          <p id="review-user-msg" class="action-msg" hidden></p>
+          <form id="review-form" class="review-form" hidden>
+            <label for="review-rating">Rating</label>
+            <select id="review-rating" required>
+              <option value="5">5 - Excellent</option>
+              <option value="4">4 - Good</option>
+              <option value="3">3 - Okay</option>
+              <option value="2">2 - Poor</option>
+              <option value="1">1 - Bad</option>
+            </select>
+
+            <label for="review-comment">Comment</label>
+            <textarea
+              id="review-comment"
+              rows="4"
+              maxlength="2000"
+              required
+              placeholder="Share your experience on this trail"
+            ></textarea>
+
+            <button id="submit-review-btn" class="action-btn" type="submit">Submit Review</button>
+          </form>
+        </div>
+
+        <div class="review-scroll-panel">
+          <ul class="review-list" id="review-list"></ul>
+          <p id="no-reviews" hidden>No reviews yet for this trail.</p>
+        </div>
+      </div>
+    </section>
   </section>
 
   <section class="panel" id="error-state" hidden>
@@ -27,12 +82,95 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
 <script>
   import { fetchTrailById } from "../../services/trails.service.js";
+  import { getMe } from "../../services/auth.service.js";
+  import { addFavorite } from "../../services/favorites.service.js";
+  import {
+    createTrailReview,
+    deleteTrailReview,
+    getTrailReviews,
+    updateTrailReview
+  } from "../../services/reviews.service.js";
+
+  function renderReviews(reviewList, reviews) {
+    reviewList.innerHTML = "";
+
+    for (const review of reviews) {
+      const item = document.createElement("li");
+      const rating = document.createElement("p");
+      const comment = document.createElement("p");
+      const author = document.createElement("p");
+
+      rating.className = "rating";
+      rating.textContent = `Rating: ${review.rating}/5`;
+      comment.textContent = review.comment;
+      author.className = "review-author";
+      author.textContent = `By ${review.reviewerName}`;
+
+      item.append(rating, comment, author);
+      reviewList.append(item);
+    }
+  }
+
+  function getTrailImageSources(trailName) {
+    const imageMap = {
+      "Pine Ridge Loop": {
+        small: "/images/Pine-Ridge-Sml.webp",
+        large: "/images/Pine-Ridge-Lrg.webp"
+      },
+      "Riverbend Path": {
+        small: "/images/River-Bend-Sml.webp",
+        large: "/images/River-Bend-Lrg.webp"
+      },
+      "Summit Spur": {
+        small: "/images/Summit-Spur-Sml.webp",
+        large: "/images/Summit-Spur-Lrg.webp"
+      },
+      "Meadow Walk": {
+        small: "/images/Meadow-Walk-Sml.webp",
+        large: "/images/Meadow-Walk-Lrg.webp"
+      },
+      "Granite Peak Trail": {
+        small: "/images/Granite-Peak-Sml.webp",
+        large: "/images/Granite-Peak-Lrg.webp"
+      },
+      "Lakeside Circuit": {
+        small: "/images/Lake-Side-Sml.webp",
+        large: "/images/Lake-Side-Lrg.webp"
+      }
+    };
+
+    return (
+      imageMap[trailName] ?? {
+        small: "/images/Sunset-Hero-Sml.webp",
+        large: "/images/Sunset-Hero.webp"
+      }
+    );
+  }
 
   async function init() {
     const loadingEl = document.getElementById("loading-state");
     const contentEl = document.getElementById("trail-content");
     const errorEl = document.getElementById("error-state");
     const errorMsg = document.getElementById("error-msg");
+    const pictureEl = document.getElementById("trail-picture");
+    const sourceEl = document.getElementById("trail-image-large-source");
+    const imageEl = document.getElementById("trail-image");
+    const actionsEl = document.getElementById("trail-actions");
+    const favoriteBtn = document.getElementById("favorite-action-btn");
+    const actionMsg = document.getElementById("favorite-action-msg");
+    const reviewAuthMsg = document.getElementById("review-auth-msg");
+    const reviewAuthContent = document.getElementById("review-auth-content");
+    const reviewList = document.getElementById("review-list");
+    const noReviews = document.getElementById("no-reviews");
+    const reviewActions = document.getElementById("review-actions");
+    const postReviewBtn = document.getElementById("post-review-btn");
+    const updateReviewBtn = document.getElementById("update-review-btn");
+    const deleteReviewBtn = document.getElementById("delete-review-btn");
+    const reviewUserMsg = document.getElementById("review-user-msg");
+    const reviewForm = document.getElementById("review-form");
+    const submitReviewBtn = document.getElementById("submit-review-btn");
+    const reviewRating = document.getElementById("review-rating");
+    const reviewComment = document.getElementById("review-comment");
 
     const trailId = window.location.pathname.split("/").pop();
 
@@ -46,20 +184,191 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         `${trail.difficulty} · ${trail.distanceKm} km · +${trail.elevationGainM} m`;
       document.getElementById("trail-description").textContent = trail.description;
 
-      const reviewList = document.getElementById("review-list");
-      const noReviews = document.getElementById("no-reviews");
+      const imageSources = getTrailImageSources(trail.name);
+      sourceEl.srcset = imageSources.large;
+      imageEl.src = imageSources.small;
+      imageEl.alt = `${trail.name} trail image`;
+      pictureEl.hidden = false;
 
-      if (trail.recentReviews?.length) {
-        reviewList.innerHTML = trail.recentReviews
-          .map(
-            (r) => `
-            <li>
-              <p class="rating">Rating: ${r.rating}/5</p>
-              <p>${r.comment}</p>
-            </li>`
-          )
-          .join("");
+      let user = null;
+      try {
+        user = await getMe();
+      } catch {
+        user = null;
+      }
+
+      actionsEl.hidden = false;
+      actionMsg.hidden = true;
+
+      if (user) {
+        favoriteBtn.textContent = "Add to Favorites";
+        favoriteBtn.classList.remove("action-btn-secondary");
+        favoriteBtn.onclick = async () => {
+          favoriteBtn.disabled = true;
+          favoriteBtn.textContent = "Adding...";
+          actionMsg.hidden = true;
+
+          try {
+            const result = await addFavorite(trailId);
+            actionMsg.hidden = false;
+
+            if (result?.added === false) {
+              actionMsg.textContent = "This trail is already in your favorites.";
+            } else {
+              actionMsg.textContent = "Added to favorites.";
+            }
+
+            favoriteBtn.textContent = "Added";
+          } catch (error) {
+            favoriteBtn.disabled = false;
+            favoriteBtn.textContent = "Add to Favorites";
+            actionMsg.hidden = false;
+            actionMsg.textContent = error?.message ?? "Could not add to favorites.";
+          }
+        };
+
+        reviewAuthMsg.hidden = true;
+        reviewAuthContent.hidden = false;
+        reviewActions.hidden = false;
+        reviewUserMsg.hidden = true;
+
+        let reviews = [];
+        let userReview = null;
+        let formMode = "create";
+
+        const resetFormState = () => {
+          reviewForm.hidden = true;
+          submitReviewBtn.disabled = false;
+          submitReviewBtn.textContent = "Submit Review";
+        };
+
+        const syncReviewUi = () => {
+          if (reviews.length > 0) {
+            renderReviews(reviewList, reviews);
+            noReviews.hidden = true;
+          } else {
+            reviewList.innerHTML = "";
+            noReviews.hidden = false;
+          }
+
+          userReview = reviews.find((review) => review.userId === user.id) ?? null;
+
+          if (userReview) {
+            postReviewBtn.hidden = true;
+            updateReviewBtn.hidden = false;
+            deleteReviewBtn.hidden = false;
+          } else {
+            postReviewBtn.hidden = false;
+            updateReviewBtn.hidden = true;
+            deleteReviewBtn.hidden = true;
+          }
+        };
+
+        const openCreateForm = () => {
+          formMode = "create";
+          reviewRating.value = "5";
+          reviewComment.value = "";
+          submitReviewBtn.textContent = "Submit Review";
+          reviewForm.hidden = false;
+          reviewUserMsg.hidden = true;
+          reviewComment.focus();
+        };
+
+        const openUpdateForm = () => {
+          if (!userReview) {
+            return;
+          }
+
+          formMode = "update";
+          reviewRating.value = String(userReview.rating);
+          reviewComment.value = userReview.comment;
+          submitReviewBtn.textContent = "Update Review";
+          reviewForm.hidden = false;
+          reviewUserMsg.hidden = true;
+          reviewComment.focus();
+        };
+
+        const reviewsResult = await getTrailReviews(trailId);
+        reviews = reviewsResult?.items ?? [];
+        syncReviewUi();
+        resetFormState();
+
+        postReviewBtn.onclick = openCreateForm;
+        updateReviewBtn.onclick = openUpdateForm;
+
+        deleteReviewBtn.onclick = async () => {
+          if (!userReview) {
+            return;
+          }
+
+          deleteReviewBtn.disabled = true;
+          reviewUserMsg.hidden = true;
+
+          try {
+            await deleteTrailReview(trailId);
+            reviews = reviews.filter((review) => review.id !== userReview.id);
+            syncReviewUi();
+            resetFormState();
+            reviewUserMsg.hidden = false;
+            reviewUserMsg.textContent = "Review deleted.";
+          } catch (error) {
+            reviewUserMsg.hidden = false;
+            reviewUserMsg.textContent = error?.message ?? "Could not delete review.";
+          }
+
+          deleteReviewBtn.disabled = false;
+        };
+
+        reviewForm.onsubmit = async (event) => {
+          event.preventDefault();
+
+          submitReviewBtn.disabled = true;
+          submitReviewBtn.textContent = formMode === "update" ? "Updating..." : "Submitting...";
+          reviewUserMsg.hidden = true;
+
+          try {
+            const payload = {
+              rating: Number(reviewRating.value),
+              comment: reviewComment.value.trim()
+            };
+
+            if (formMode === "update") {
+              const result = await updateTrailReview(trailId, payload);
+              const updated = result?.item;
+              if (updated && userReview) {
+                reviews = reviews.map((review) => (review.id === userReview.id ? updated : review));
+              }
+              reviewUserMsg.hidden = false;
+              reviewUserMsg.textContent = "Review updated.";
+            } else {
+              const result = await createTrailReview(trailId, payload);
+              const created = result?.item;
+              if (created) {
+                reviews = [created, ...reviews];
+              }
+              reviewUserMsg.hidden = false;
+              reviewUserMsg.textContent = "Review submitted.";
+            }
+
+            syncReviewUi();
+            reviewForm.reset();
+            resetFormState();
+          } catch (error) {
+            reviewUserMsg.hidden = false;
+            reviewUserMsg.textContent = error?.message ?? "Could not save review.";
+            submitReviewBtn.disabled = false;
+            submitReviewBtn.textContent = formMode === "update" ? "Update Review" : "Submit Review";
+          }
+        };
       } else {
+        favoriteBtn.textContent = "Log in or Sign up to save favorites";
+        favoriteBtn.classList.add("action-btn-secondary");
+        favoriteBtn.onclick = () => {
+          window.location.href = "/login";
+        };
+
+        reviewAuthContent.hidden = true;
+        reviewAuthMsg.hidden = false;
         noReviews.hidden = false;
       }
 
@@ -98,25 +407,174 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     color: #425842;
   }
 
-  .review-list {
+  .trail-overview {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: start;
+    margin: 0.2rem 0 1rem;
+  }
+
+  .trail-image-wrap {
+    width: 100%;
+  }
+
+  .trail-picture {
+    display: block;
+    width: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #cfdccf;
+    box-shadow: 0 10px 24px rgba(23, 58, 34, 0.14);
+    background: #edf3ed;
+  }
+
+  .trail-picture img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+
+  .trail-text-wrap {
+    width: 100%;
+    text-align: left;
+  }
+
+  .trail-actions {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+  }
+
+  .action-btn {
+    min-height: 2.5rem;
+    padding: 0.55rem 0.95rem;
+    border: 0;
+    border-radius: 10px;
+    background: #245d39;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .action-btn:hover {
+    background: #1d4b2d;
+  }
+
+  .action-btn:disabled {
+    opacity: 0.75;
+    cursor: default;
+  }
+
+  .action-btn-secondary {
+    background: #f0f4ef;
+    color: #245d39;
+    border: 1px solid #b9cbbd;
+  }
+
+  .action-btn-secondary:hover {
+    background: #e7f0e7;
+  }
+
+  .action-btn-danger {
+    background: #8f2d2d;
+  }
+
+  .action-btn-danger:hover {
+    background: #752424;
+  }
+
+  .action-msg {
+    margin: 0;
+    font-size: 0.92rem;
+    color: #35563a;
+  }
+
+  :global(.review-list) {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
-    gap: 0.7rem;
+    gap: 0;
   }
 
-  .review-list li {
+  .review-layout {
+    display: grid;
+    gap: 0.9rem;
+    align-items: start;
+  }
+
+  .review-editor {
+    min-width: 0;
     border: 1px solid #d7dfd7;
     border-radius: 10px;
-    padding: 0.8rem;
     background: #fff;
+    padding: 0.75rem;
   }
 
-  .rating {
+  .review-scroll-panel {
+    min-width: 0;
+    border: 1px solid #d7dfd7;
+    border-radius: 10px;
+    background: #fff;
+    padding: 0.75rem;
+  }
+
+  .review-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.7rem;
+  }
+
+  :global(.review-list li) {
+    padding: 0.85rem 0.1rem 0.7rem;
+    background: transparent;
+  }
+
+  :global(.review-list li + li) {
+    border-top: 2px solid #7f9f87;
+  }
+
+  :global(.rating) {
     margin: 0 0 0.3rem;
     font-weight: 700;
     color: #2f6b3e;
+  }
+
+  :global(.review-author) {
+    margin: 0.35rem 0 0;
+    color: #4a5c4d;
+    font-size: 0.9rem;
+  }
+
+  .review-form {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0.65rem 0 0;
+    max-width: 100%;
+  }
+
+  .review-form label {
+    font-weight: 600;
+    color: #2c4431;
+  }
+
+  .review-form select,
+  .review-form textarea {
+    border: 1px solid #b9cbbd;
+    border-radius: 10px;
+    padding: 0.6rem 0.7rem;
+    font: inherit;
+    background: #fff;
+    color: #1f2a1f;
+  }
+
+  .review-form textarea {
+    resize: vertical;
   }
 
   .error {
@@ -124,8 +582,34 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     font-weight: 600;
   }
 
+  @media (min-width: 900px) {
+    .trail-overview {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .trail-picture img {
+      aspect-ratio: 16 / 10;
+    }
+
+    .review-layout {
+      grid-template-columns: minmax(300px, 1fr) minmax(320px, 1fr);
+      align-items: stretch;
+      gap: 1rem;
+    }
+
+    .review-scroll-panel {
+      max-height: 420px;
+      overflow-y: auto;
+    }
+  }
+
   @media (max-width: 640px) {
-    .review-list li {
+    .trail-picture {
+      border-radius: 12px;
+    }
+
+    :global(.review-list li) {
       padding: 0.7rem;
     }
   }
