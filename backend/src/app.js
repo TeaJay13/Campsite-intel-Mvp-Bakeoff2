@@ -10,8 +10,17 @@ import { seedTrailsIfEmpty } from "./lib/seed-trails.js";
 export async function buildApp() {
   const app = Fastify({ logger: true });
 
+  const configuredOrigins = (process.env.CORS_ORIGINS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const allowedOrigins = configuredOrigins.length
+    ? configuredOrigins
+    : ["http://localhost:4321", "http://localhost:4322"];
+
   await app.register(cors, {
-    origin: ["http://localhost:4321", "http://localhost:4322"],
+    origin: allowedOrigins,
     credentials: true
   });
 
